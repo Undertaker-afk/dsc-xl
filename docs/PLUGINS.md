@@ -191,7 +191,7 @@ Graphical settings interface for Lite XL.
 - Font picker
 - Keybinding editor
 
-**Note:** This plugin requires the `lite-xl-widgets` library to be installed.
+**Dependencies:** Uses the integrated `lite-xl-widgets` library (included in `data/libraries/widget/`).
 
 ---
 
@@ -241,16 +241,22 @@ config.plugins.gitcontrol.size = 250 * SCALE
 
 All plugins are now directly integrated into the `data/plugins` directory and will be loaded automatically when Lite XL starts.
 
-### Dependencies
+### Integrated Libraries
 
-Some plugins have dependencies that need to be installed separately:
+The following libraries are pre-integrated in the `data/libraries/` directory:
 
-1. **Settings Plugin** requires:
-   - `lite-xl-widgets` library
+1. **lite-xl-widgets** (`data/libraries/widget/`)
+   - Provides GUI components for the settings plugin
+   - Includes 30+ widget components (buttons, dialogs, color pickers, etc.)
+   - No manual installation required
 
-2. **LSP C Plugin** requires:
-   - `lite-xl-lsp` plugin
-   - clangd language server
+### External Dependencies
+
+Some plugins have external dependencies that need to be installed separately:
+
+1. **LSP C Plugin** requires:
+   - `lite-xl-lsp` plugin (separate installation)
+   - clangd language server (system installation)
 
 ### Usage Tips
 
@@ -281,9 +287,10 @@ If git control shows "Git not available":
 
 ### Settings Plugin Not Loading
 
-If settings plugin fails to load:
-1. Install the `lite-xl-widgets` library
-2. Place it in the appropriate directory based on your OS
+The settings plugin should work out of the box as the `lite-xl-widgets` library is pre-integrated.
+If it still fails to load:
+1. Verify `data/libraries/widget/` directory exists and contains the widget files
+2. Check the console for error messages
 3. Restart Lite XL
 
 ---

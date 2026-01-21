@@ -57,6 +57,12 @@ This distribution includes several pre-integrated plugins for enhanced functiona
 - **Settings** - Graphical settings interface
 - **Git Control** - VS Code-like source control integration (Ctrl+Shift+G)
 
+### Integrated Libraries
+
+- **lite-xl-widgets** - GUI widget library (required by settings plugin)
+  - Located in `data/libraries/widget/`
+  - Provides 30+ ready-to-use UI components
+
 For detailed documentation on these plugins, see [docs/PLUGINS.md](docs/PLUGINS.md).
 
 ## Quick Build Guide
