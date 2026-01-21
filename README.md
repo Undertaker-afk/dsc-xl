@@ -43,6 +43,22 @@ the [plugins repository] or in the [Lite XL plugins repository].
 Additional color themes can be found in the [colors repository].
 These color themes are bundled with all releases of Lite XL by default.
 
+### Integrated Plugins
+
+This distribution includes several pre-integrated plugins for enhanced functionality:
+
+- **Autosave** - Automatically saves documents after inactivity
+- **Autowrap** - Automatic text wrapping for markdown and text files
+- **Code Plus** - Enhanced code editing with @todo/@fixme highlights and autocomplete
+- **Console** - Integrated terminal for running commands
+- **Line Numbers** - Enhanced line numbers with relative and hybrid modes
+- **LSP C** - Language Server Protocol support for C/C++
+- **Minimap** - Document overview minimap
+- **Settings** - Graphical settings interface
+- **Git Control** - VS Code-like source control integration (Ctrl+Shift+G)
+
+For detailed documentation on these plugins, see [docs/PLUGINS.md](docs/PLUGINS.md).
+
 ## Quick Build Guide
 
 To compile Lite XL yourself, you must have the following dependencies installed
