@@ -200,6 +200,13 @@ Graphical settings interface for Lite XL.
 
 A comprehensive git integration with a visual interface similar to VS Code.
 
+---
+
+### 10. AI Copilot (`aicopilot.lua`)
+**Custom Integration** - GitHub Copilot-style AI Assistant
+
+An advanced AI coding assistant with multiple interaction modes and OpenAI-compatible API support.
+
 **Features:**
 - Visual git status display
 - Separate sections for staged, unstaged, and untracked files
@@ -234,6 +241,53 @@ config.plugins.gitcontrol.auto_refresh = true
 config.plugins.gitcontrol.refresh_interval = 2  -- seconds
 config.plugins.gitcontrol.size = 250 * SCALE
 ```
+
+**Features:**
+- Multiple modes: Ask, Edit, YOLO, Plan
+- OpenAI-compatible API support (OpenAI, Azure, Claude, local LLMs)
+- Context-aware code assistance
+- Model Context Protocol (MCP) support
+- Auto-apply edits in YOLO mode
+- Configurable via Settings GUI
+
+**Commands:**
+- `ai-copilot:ask` - Ask questions about code
+- `ai-copilot:edit` - Request code modifications
+- `ai-copilot:yolo` - Rapid code generation (auto-apply optional)
+- `ai-copilot:plan` - Architecture and planning
+- `ai-copilot:apply-suggestion` - Apply AI suggestion
+- `ai-copilot:quick-prompt` - Quick prompt in current mode
+
+**Keybindings:**
+- `Ctrl+Alt+Space` - Quick prompt
+- `Ctrl+Alt+A` - Ask mode
+- `Ctrl+Alt+E` - Edit mode
+- `Ctrl+Alt+Y` - YOLO mode
+- `Ctrl+Alt+P` - Plan mode
+- `Ctrl+Alt+Shift+A` - Apply suggestion
+
+**Configuration:**
+```lua
+config.plugins.aicopilot.api_endpoint = "https://api.openai.com/v1/chat/completions"
+config.plugins.aicopilot.api_key = "your-api-key"
+config.plugins.aicopilot.model = "gpt-4"
+config.plugins.aicopilot.mode = "ask"  -- ask, edit, yolo, plan
+config.plugins.aicopilot.auto_apply_edits = false
+```
+
+**Modes Explained:**
+- **Ask**: Question & answer about your code
+- **Edit**: Request specific code changes with review
+- **YOLO**: Fast code generation, optional auto-apply
+- **Plan**: Architecture and implementation planning
+
+**API Compatibility:**
+- OpenAI (default)
+- Azure OpenAI
+- Anthropic Claude (via proxy)
+- Local LLMs (LM Studio, Ollama, etc.)
+
+**See:** [docs/AICOPILOT.md](AICOPILOT.md) for comprehensive documentation.
 
 ---
 

@@ -56,6 +56,7 @@ This distribution includes several pre-integrated plugins for enhanced functiona
 - **Minimap** - Document overview minimap
 - **Settings** - Graphical settings interface
 - **Git Control** - VS Code-like source control integration (Ctrl+Shift+G)
+- **AI Copilot** - GitHub Copilot-style AI assistant with Ask/Edit/YOLO/Plan modes (Ctrl+Alt+Space)
 
 ### Integrated Libraries
 
