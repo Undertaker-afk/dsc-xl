@@ -26,6 +26,18 @@ A comprehensive AI-powered coding assistant with multiple interaction modes, Ope
    - Design system architecture
    - Strategic code organization
 
+5. **Inline Chat** - Quick Conversations (NEW)
+   - Persistent chat panel
+   - Context-aware discussions
+   - Multi-turn conversations
+   - Integrated in editor
+
+6. **Lint Integration** - AI-Powered Code Quality (NEW)
+   - Analyze code for issues
+   - AI suggests fixes
+   - Auto-fix option
+   - JSON-formatted lint reports
+
 ### 🔌 API Integration
 
 - **OpenAI-Compatible Endpoints**
@@ -67,6 +79,7 @@ Open Settings > AI Copilot and set:
 **Quick Access (Recommended):**
 ```
 Ctrl+Alt+Space - Quick prompt in current mode
+Ctrl+Alt+C - Toggle inline chat panel
 ```
 
 **Mode-Specific Commands:**
@@ -78,7 +91,60 @@ Ctrl+Alt+P - Plan mode
 Ctrl+Alt+Shift+A - Apply suggestion
 ```
 
+**Inline Chat & Linting:**
+```
+Ctrl+Alt+C - Toggle inline chat
+Ctrl+Alt+Shift+C - Send chat message
+Ctrl+Alt+L - Run AI lint analysis
+Ctrl+Alt+F - Fix next lint issue
+```
+
 ## Detailed Usage
+
+### Inline Chat (NEW)
+
+Real-time AI conversation panel:
+
+1. Press `Ctrl+Alt+C` to toggle chat panel
+2. Type message and press Enter
+3. Have multi-turn conversations
+4. Context-aware responses
+5. Chat history persists
+
+**Use cases:**
+- Quick questions without opening new documents
+- Iterative problem solving
+- Real-time code discussions
+- Debugging assistance
+
+**Features:**
+- Persistent chat history
+- Scrollable message view
+- User/AI message distinction
+- Typing indicator
+
+### Lint Integration (NEW)
+
+AI-powered code quality analysis:
+
+1. Open a file with code
+2. Press `Ctrl+Alt+L` to run AI lint
+3. Review issues found
+4. Press `Ctrl+Alt+F` to fix next issue
+5. Review or auto-apply fixes
+
+**Features:**
+- Language-aware analysis
+- JSON-formatted error reports
+- Severity levels (error/warning/info)
+- Line and column information
+- Automatic fix generation
+- Batch fix all issues
+
+**Auto-fix mode:**
+- Enable in settings for automatic application
+- Disabled by default for safety
+- Review each fix before enabling
 
 ### Ask Mode
 
@@ -236,6 +302,19 @@ aicopilot.mcp_call("filesystem", "read_file", {path = "/path/to/file"})
 - `ai-copilot:quick-prompt` - Quick prompt in current mode
 - `ai-copilot:apply-suggestion` - Apply last AI suggestion
 
+### Inline Chat Commands (NEW)
+
+- `ai-copilot:toggle-inline-chat` - Show/hide chat panel
+- `ai-copilot:send-chat-message` - Send message to chat
+- `ai-copilot:clear-chat` - Clear chat history
+
+### Linting Commands (NEW)
+
+- `ai-copilot:lint-current-file` - Analyze file for issues
+- `ai-copilot:fix-next-lint` - Fix next lint error
+- `ai-copilot:fix-all-lint` - Fix all lint errors
+- `ai-copilot:apply-lint-fix` - Apply suggested fix
+
 ### Mode Switching
 
 - `ai-copilot:set-mode-ask` - Switch to Ask mode
@@ -257,12 +336,39 @@ aicopilot.mcp_call("filesystem", "read_file", {path = "/path/to/file"})
 | `Ctrl+Alt+Y` | YOLO mode |
 | `Ctrl+Alt+P` | Plan mode |
 | `Ctrl+Alt+Shift+A` | Apply suggestion |
+| **`Ctrl+Alt+C`** | **Toggle inline chat** |
+| **`Ctrl+Alt+Shift+C`** | **Send chat message** |
+| **`Ctrl+Alt+L`** | **Run AI lint** |
+| **`Ctrl+Alt+F`** | **Fix next lint issue** |
 
 **Note:** Customize keybindings via Settings > Keybindings
 
 ## Workflow Examples
 
-### Example 1: Code Review
+### Example 1: Inline Chat Session
+
+```
+1. Press Ctrl+Alt+C to open chat
+2. Type: "How do I implement error handling?"
+3. Read response
+4. Type: "Show me an example with try/catch"
+5. Get code example
+6. Continue conversation as needed
+```
+
+### Example 2: AI Lint and Fix
+
+```
+1. Open file with potential issues
+2. Ctrl+Alt+L to run AI lint
+3. Review reported issues in log
+4. Ctrl+Alt+F to fix first issue
+5. Review suggested fix
+6. Apply or regenerate
+7. Repeat for remaining issues
+```
+
+### Example 3: Code Review
 
 ```
 1. Open a file

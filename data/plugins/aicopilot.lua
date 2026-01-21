@@ -151,6 +151,10 @@ config.plugins.aicopilot = common.merge({
   mcp_servers = {},
   auto_apply_edits = false, -- For YOLO mode
   show_thinking = false,
+  inline_chat_enabled = true,
+  inline_chat_size = 300 * SCALE,
+  lint_integration = true,
+  auto_fix_linting = false,
   config_spec = {
     name = "AI Copilot",
     {
@@ -231,6 +235,42 @@ config.plugins.aicopilot = common.merge({
       label = "Show Thinking",
       description = "Display AI reasoning process before answers.",
       path = "show_thinking",
+      type = "toggle",
+      default = false
+    },
+    {
+      label = "Enable Inline Chat",
+      description = "Show inline chat panel for quick AI conversations.",
+      path = "inline_chat_enabled",
+      type = "toggle",
+      default = true
+    },
+    {
+      label = "Inline Chat Size",
+      description = "Height of the inline chat panel.",
+      path = "inline_chat_size",
+      type = "number",
+      default = 300,
+      min = 150,
+      max = 800,
+      get_value = function(value)
+        return value / SCALE
+      end,
+      set_value = function(value)
+        return value * SCALE
+      end
+    },
+    {
+      label = "Lint Integration",
+      description = "Enable AI-powered linting assistance.",
+      path = "lint_integration",
+      type = "toggle",
+      default = true
+    },
+    {
+      label = "Auto-Fix Linting",
+      description = "Automatically apply AI suggestions for lint errors.",
+      path = "auto_fix_linting",
       type = "toggle",
       default = false
     }
@@ -610,16 +650,309 @@ command.add(nil, {
   end
 })
 
--- Keybindings
+-- Inline Chat View
+local InlineChatView = View:extend()
+
+function InlineChatView:new()
+  InlineChatView.super.new(self)
+  self.scrollable = true
+  self.target_size = config.plugins.aicopilot.inline_chat_size
+  self.visible = false
+  self.messages = {}
+  self.input_text = ""
+  self.waiting_response = false
+end
+
+function InlineChatView:get_name()
+  return "AI Chat"
+end
+
+function InlineChatView:set_target_size(axis, value)
+  if axis == "y" then
+    self.target_size = value
+    return true
+  end
+end
+
+function InlineChatView:get_scrollable_size()
+  local lh = style.font:get_height() + style.padding.y
+  return (#self.messages * lh * 3) + style.padding.y * 2 + 60
+end
+
+function InlineChatView:send_message(text)
+  if text == "" or self.waiting_response then return end
+  
+  table.insert(self.messages, {role = "user", content = text})
+  self.input_text = ""
+  self.waiting_response = true
+  
+  local context = aicopilot.get_document_context()
+  local system_msg = "You are an AI coding assistant. Provide helpful, concise responses."
+  
+  local messages = {{role = "system", content = system_msg}}
+  for _, msg in ipairs(self.messages) do
+    table.insert(messages, msg)
+  end
+  
+  aicopilot.call_api(messages, function(success, response)
+    self.waiting_response = false
+    if success then
+      table.insert(self.messages, {role = "assistant", content = response})
+    else
+      table.insert(self.messages, {role = "assistant", content = "Error: " .. response})
+    end
+    core.redraw = true
+  end)
+end
+
+function InlineChatView:on_text_input(text)
+  self.input_text = self.input_text .. text
+end
+
+function InlineChatView:on_mouse_pressed(button, x, y, clicks)
+  if InlineChatView.super.on_mouse_pressed(self, button, x, y, clicks) then
+    return true
+  end
+  return false
+end
+
+function InlineChatView:update(...)
+  local dest = self.visible and self.target_size or 0
+  self:move_towards(self.size, "y", dest, nil, "inline_chat")
+  InlineChatView.super.update(self, ...)
+end
+
+function InlineChatView:draw()
+  self:draw_background(style.background2)
+  
+  local x, y = self:get_content_offset()
+  local lh = style.font:get_height() + style.padding.y
+  
+  -- Draw messages
+  for i, msg in ipairs(self.messages) do
+    local color = msg.role == "user" and style.accent or style.text
+    local prefix = msg.role == "user" and "You: " or "AI: "
+    
+    common.draw_text(style.font, color, prefix, "left", x + style.padding.x, y, self.size.x, lh)
+    y = y + lh
+    
+    -- Wrap and draw message content
+    local words = {}
+    for word in msg.content:gmatch("%S+") do
+      table.insert(words, word)
+    end
+    
+    local line = ""
+    for _, word in ipairs(words) do
+      local test_line = line == "" and word or (line .. " " .. word)
+      if style.font:get_width(test_line) < self.size.x - style.padding.x * 3 then
+        line = test_line
+      else
+        common.draw_text(style.font, style.dim, line, "left", x + style.padding.x * 2, y, self.size.x, lh)
+        y = y + lh
+        line = word
+      end
+    end
+    if line ~= "" then
+      common.draw_text(style.font, style.dim, line, "left", x + style.padding.x * 2, y, self.size.x, lh)
+      y = y + lh
+    end
+    
+    y = y + style.padding.y
+  end
+  
+  -- Draw input area
+  y = self.size.y - 40
+  renderer.draw_rect(x, y, self.size.x, 40, style.background)
+  
+  local input_display = self.waiting_response and "Waiting for AI..." or self.input_text
+  common.draw_text(style.font, style.text, input_display, "left", x + style.padding.x, y + 10, self.size.x, lh)
+  
+  -- Draw separator
+  renderer.draw_rect(x, y, self.size.x, 1, style.divider)
+  
+  self:draw_scrollbar(self)
+end
+
+-- Create inline chat view
+local inline_chat_view = nil
+
+local function get_inline_chat()
+  if not inline_chat_view then
+    inline_chat_view = InlineChatView()
+    local node = core.root_view.root_node:get_node_for_view(core.command_view)
+    node:split("up", inline_chat_view, {y = true}, true)
+  end
+  return inline_chat_view
+end
+
+-- Linting Integration
+aicopilot.lint_errors = {}
+
+function aicopilot.analyze_for_lint(code, language)
+  local system_message = string.format(
+    "You are a code linting assistant. Analyze the following %s code and report any issues, bugs, or improvements. " ..
+    "Format your response as a JSON array of objects with 'line', 'column', 'severity' (error/warning/info), and 'message' fields.",
+    language
+  )
+  
+  local user_message = string.format("```%s\n%s\n```", language, code)
+  
+  aicopilot.call_api({
+    {role = "system", content = system_message},
+    {role = "user", content = user_message}
+  }, function(success, response)
+    if success then
+      -- Try to parse JSON response
+      local json_match = response:match("```json\n(.-)```") or response:match("%[.-%]")
+      if json_match then
+        local ok, errors = pcall(json.decode, json_match)
+        if ok and type(errors) == "table" then
+          aicopilot.lint_errors = errors
+          core.log("AI Linting: Found " .. #errors .. " issues")
+        end
+      end
+    end
+  end)
+end
+
+function aicopilot.fix_lint_error(error_info)
+  local context = aicopilot.get_document_context()
+  if not context then return end
+  
+  local system_message = "You are a code fixing assistant. Fix the reported issue and return ONLY the corrected code line(s)."
+  local user_message = string.format(
+    "Language: %s\nLine %d: %s\nError: %s\n\nProvide the fixed code.",
+    context.language,
+    error_info.line,
+    context.full:match(string.rep("[^\n]*\n", error_info.line - 1) .. "([^\n]*)") or "",
+    error_info.message
+  )
+  
+  core.log("Fixing lint issue...")
+  
+  aicopilot.call_api({
+    {role = "system", content = system_message},
+    {role = "user", content = user_message}
+  }, function(success, response)
+    if success then
+      local fixed_code = response:match("```[%w]*\n(.-)```") or response
+      
+      if config.plugins.aicopilot.auto_fix_linting then
+        -- Auto-apply fix
+        local av = core.active_view
+        if av and av.doc then
+          av.doc:remove(error_info.line, 1, error_info.line, math.huge)
+          av.doc:insert(error_info.line, 1, fixed_code)
+          core.log("Auto-fixed: " .. error_info.message)
+        end
+      else
+        -- Show suggestion
+        core.log("Suggested fix: " .. fixed_code)
+        aicopilot.last_lint_fix = {line = error_info.line, code = fixed_code}
+      end
+    else
+      core.error("Failed to generate fix: " .. response)
+    end
+  end)
+end
+
+-- Add new commands for inline chat and linting
+command.add(nil, {
+  ["ai-copilot:toggle-inline-chat"] = function()
+    if config.plugins.aicopilot.inline_chat_enabled then
+      local chat = get_inline_chat()
+      chat.visible = not chat.visible
+    else
+      core.error("Inline chat is disabled. Enable it in Settings > AI Copilot")
+    end
+  end,
+  
+  ["ai-copilot:send-chat-message"] = function()
+    core.command_view:enter("Chat Message", {
+      submit = function(text)
+        local chat = get_inline_chat()
+        chat.visible = true
+        chat:send_message(text)
+      end
+    })
+  end,
+  
+  ["ai-copilot:clear-chat"] = function()
+    if inline_chat_view then
+      inline_chat_view.messages = {}
+      core.log("Chat cleared")
+    end
+  end,
+  
+  ["ai-copilot:lint-current-file"] = function()
+    if not config.plugins.aicopilot.lint_integration then
+      core.error("Lint integration is disabled")
+      return
+    end
+    
+    local context = aicopilot.get_document_context()
+    if not context then
+      core.error("No active document")
+      return
+    end
+    
+    core.log("Running AI lint analysis...")
+    aicopilot.analyze_for_lint(context.full, context.language)
+  end,
+  
+  ["ai-copilot:fix-next-lint"] = function()
+    if #aicopilot.lint_errors > 0 then
+      local error = table.remove(aicopilot.lint_errors, 1)
+      aicopilot.fix_lint_error(error)
+    else
+      core.error("No lint errors to fix")
+    end
+  end,
+  
+  ["ai-copilot:fix-all-lint"] = function()
+    if #aicopilot.lint_errors == 0 then
+      core.error("No lint errors to fix")
+      return
+    end
+    
+    core.log("Fixing " .. #aicopilot.lint_errors .. " lint issues...")
+    for _, error in ipairs(aicopilot.lint_errors) do
+      aicopilot.fix_lint_error(error)
+    end
+    aicopilot.lint_errors = {}
+  end,
+  
+  ["ai-copilot:apply-lint-fix"] = function()
+    if aicopilot.last_lint_fix then
+      local av = core.active_view
+      if av and av.doc then
+        local fix = aicopilot.last_lint_fix
+        av.doc:remove(fix.line, 1, fix.line, math.huge)
+        av.doc:insert(fix.line, 1, fix.code)
+        core.log("Applied lint fix")
+        aicopilot.last_lint_fix = nil
+      end
+    else
+      core.error("No lint fix to apply")
+    end
+  end
+})
+
+-- Update keybindings
 keymap.add {
   ["ctrl+alt+a"] = "ai-copilot:ask",
   ["ctrl+alt+e"] = "ai-copilot:edit",
   ["ctrl+alt+y"] = "ai-copilot:yolo",
   ["ctrl+alt+p"] = "ai-copilot:plan",
   ["ctrl+alt+space"] = "ai-copilot:quick-prompt",
-  ["ctrl+alt+shift+a"] = "ai-copilot:apply-suggestion"
+  ["ctrl+alt+shift+a"] = "ai-copilot:apply-suggestion",
+  ["ctrl+alt+c"] = "ai-copilot:toggle-inline-chat",
+  ["ctrl+alt+shift+c"] = "ai-copilot:send-chat-message",
+  ["ctrl+alt+l"] = "ai-copilot:lint-current-file",
+  ["ctrl+alt+f"] = "ai-copilot:fix-next-lint"
 }
 
-core.log_quiet("AI Copilot loaded. Quick access: Ctrl+Alt+Space")
+core.log_quiet("AI Copilot loaded with inline chat and lint integration. Quick chat: Ctrl+Alt+C")
 
 return aicopilot

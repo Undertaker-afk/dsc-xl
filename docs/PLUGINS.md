@@ -244,6 +244,8 @@ config.plugins.gitcontrol.size = 250 * SCALE
 
 **Features:**
 - Multiple modes: Ask, Edit, YOLO, Plan
+- **Inline Chat** - Persistent chat panel for quick AI conversations
+- **Lint Integration** - AI-powered code analysis and auto-fix
 - OpenAI-compatible API support (OpenAI, Azure, Claude, local LLMs)
 - Context-aware code assistance
 - Model Context Protocol (MCP) support
